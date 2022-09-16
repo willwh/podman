@@ -29,6 +29,21 @@ var (
 		RunE:              list,
 		TraverseChildren:  false,
 	}
+
+	// Providing support for docker context ls
+	contextLsCmd = &cobra.Command{
+		Use:     "ls [options]",
+		Aliases: []string{"ls"},
+		Args:    validate.NoArgs,
+		Short:   "List contexts",
+		Long:    `List contexts`,
+		Example: `podman context ls
+  podman context ls
+  podman context ls --format=json`,
+		ValidArgsFunction: completion.AutocompleteNone,
+		RunE:              list,
+		TraverseChildren:  false,
+	}
 )
 
 func init() {
@@ -36,6 +51,16 @@ func init() {
 		Command: listCmd,
 		Parent:  system.ConnectionCmd,
 	})
+
+	// Providing support for docker context ls
+	registry.Commands = append(registry.Commands, registry.CliCommand{
+		Command: contextLsCmd,
+		Parent:  contextCmd,
+	})
+
+	// context ls --format, hidden as docker based
+	contextLsCmd.Flags().String("format", "", "Pretty-print contexts using a Go template")
+	_ = contextLsCmd.Flags().MarkHidden("format")
 
 	listCmd.Flags().String("format", "", "Custom Go template for printing connections")
 	_ = listCmd.RegisterFlagCompletionFunc("format", common.AutocompleteFormat(&namedDestination{}))
